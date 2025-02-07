@@ -23,9 +23,7 @@ class KeyValueStore(dict):
         return self.conn.execute(f"SELECT 1 FROM kv WHERE key = '{key}' AND updated_at >= DATETIME('now', '-{self.invalidate_hours} hours')").fetchone() is not None
     def __getitem__(self, key):
         item = self.conn.execute("SELECT value FROM kv WHERE key = ?", (key,)).fetchone()
-        if item is None:
-            raise KeyError(key)
-        return item[0]
+        return item[0] if item else None
     def __setitem__(self, key, value):
         self.conn.execute("REPLACE INTO kv (key, value, updated_at) VALUES (?,?, CURRENT_TIMESTAMP)", (key, value))
         self.conn.commit()
